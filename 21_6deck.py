@@ -5,7 +5,7 @@ class Card:
         self.value = value
         self.suit = suit
         numDict = {'A':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10,'Q':10,'K':10}
-        num2Dict = {'A':10,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10,'Q':10,'K':10}
+        num2Dict = {'A':11,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10,'Q':10,'K':10}
         self.number = numDict[value]
         self.numbermax = num2Dict[value]
 
@@ -59,10 +59,40 @@ PrintDealerHand(dealerHand)
 # initial player hand
 playerHand = DealPlayerHand(deck)
 PrintPlayerHand(playerHand)
+bj = 0
+# test if player has blackjack
+if sum(c.numbermax for c in playerHand) == 21:
+    print('Player Blackjack!')
+    bj = 1
 
 hitOrStand = ''
+insur = ''
+# test if dealer is showing an ace
+if dealerHand[0].value == 'A':
+    if bj == 0:
+        print('fuckin dealer ace bud')
+        insur = input('insurance? (y or n): ')
+    if dealerHand[1].number == 10:
+        print('Dealer Blackjack')
+        hitOrStand = 's'
+    else:
+        print('No Dealer Blackjack')
+
 while hitOrStand != 's':
-    if sum(c.number for c in playerHand) >= 21:
+    # double down condition
+    if len(playerHand) == 2:
+        hitOrStand = input('(h)it or (s)tand or (d)ouble?: ')
+        if hitOrStand == 'h':
+            playerHand.append(deck.pop(0))
+            PrintDealerHand(dealerHand)
+            PrintPlayerHand(playerHand)
+        if hitOrStand == 'd':
+            print('Double Down')
+            playerHand.append(deck.pop(0))
+            PrintDealerHand(dealerHand)
+            PrintPlayerHand(playerHand)
+            hitOrStand = 's'
+    elif sum(c.number for c in playerHand) >= 21:
         break
     else:
         hitOrStand = input("(h)it or (s)tand?: ")
@@ -70,12 +100,55 @@ while hitOrStand != 's':
             playerHand.append(deck.pop(0))
             PrintDealerHand(dealerHand)
             PrintPlayerHand(playerHand)
+            print(' ')
 print('Player Stands')
 print('')
 PrintDealerFullHand(dealerHand)
+PrintPlayerHand(playerHand)
 # dealer hits soft 17
-while sum(c.number for c in dealerHand) < 17 and (sum(c.numbermax for c in dealerHand) <= 17):
-    print('Dealer hits')
-    dealerHand.append(deck.pop(0))
-    PrintDealerFullHand(dealerHand)
-    PrintPlayerHand(playerHand)
+dealerAction = ''
+
+while dealerAction != 's' and dealerAction != 'b':
+    if sum(c.number for c in dealerHand) > 21:
+        dealerAction = 'b'
+    # hard 16 or less:
+    if (sum(c.number for c in dealerHand) < 17) and ('A' not in [c.value for c in dealerHand]):
+        dealerAction = 'h'
+    # soft 17 or less:
+    elif ('A' in [c.value for c in dealerHand]) and sum(c.numbermax for c in dealerHand) <= 17:
+        dealerAction = 'h'
+    # hard 17 to 21:
+    elif (17 <= sum(c.number for c in dealerHand)) and (sum(c.number for c in dealerHand) <= 21) and ('A' not in [c.value for c in dealerHand]):
+        dealerAction = 's'
+    # soft 18 to 21:
+    elif (17 <= sum(c.numbermax for c in dealerHand)) and (sum(c.numbermax for c in dealerHand) <= 21) and ('A' in [c.value for c in dealerHand]):
+        dealerAction = 's'
+
+    if dealerAction == 'h':
+        dealerHand.append(deck.pop(0))
+        print('Dealer hits')
+        PrintDealerFullHand(dealerHand)
+        PrintPlayerHand(playerHand)
+    if dealerAction == 's':
+        print('Dealer stands')
+
+# determine number value of standing hand:
+def finalTotal(hand):
+    softTotal = sum(c.numbermax for c in hand)
+    hardTotal = sum(c.number for c in hand)
+    if softTotal > 21:
+        total = hardTotal
+    else:
+        total = softTotal
+    if total > 21:
+        total = 0
+    return(total)
+
+#print(finalTotal(dealerHand))
+#print(finalTotal(playerHand))
+if finalTotal(dealerHand) > finalTotal(playerHand):
+    print('Dealer wins')
+elif finalTotal(playerHand) > finalTotal(dealerHand):
+    print('Player wins')
+elif finalTotal(dealerHand) == finalTotal(playerHand):
+    print('Push')
