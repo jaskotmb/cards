@@ -72,11 +72,6 @@ def PrintPlayerHand(hand):
     else:
         print("",[h.value + ' ' + h.suit for h in hand],' ','Total: ',sum(c.number for c in hand),sep='')
 
-def DealPlayerHand(shoe):
-    player1 = shoe.pop(0)
-    player2 = shoe.pop(0)
-    return [player1, player2]
-
 # shuffle deck
 random.shuffle(deck)
 # create player objects and deal hands
